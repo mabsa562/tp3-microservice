@@ -37,7 +37,7 @@ jobs:
           cache-dependency-path: commande-service/pom.xml
 
       - name: Build Maven
-        run: mvn -f commande-service/pom.xml clean package -DskipTests
+        run: mvn clean package
 
       - name: Se connecter à Docker Hub
         uses: docker/login-action@v3
