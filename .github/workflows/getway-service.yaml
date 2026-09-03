@@ -1,0 +1,52 @@
+name: CI/CD Getway Service
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'getway-service/**'
+      - '.github/workflows/getway-service.yaml'
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'getway-service/**'
+      - '.github/workflows/getway-service.yaml'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: getway-service
+
+    steps:
+
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: getway-service/pom.xml
+
+      - name: Build Maven
+        run: mvn clean package
+
+      - name: Se connecter à Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Construire l'image Docker
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/getway-service:latest .
+
+      - name: Envoyer l'image vers Docker Hub
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/getway-service:latest
