@@ -1,0 +1,31 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: auth-service
+
+  datasource:
+    url: jdbc:postgresql://postgres-auth:5432/authdb
+    username: postgres
+    password: passer
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+jwt:
+  secret: "ISI-Master2-2026-TP-Microservices-JWT-Shared-Secret-Change-Me"
+  expiration-ms: 3600000
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://service-discovery:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true

@@ -6,7 +6,7 @@ spring:
     name: produit-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/produitdb
+    url: jdbc:postgresql://postgres-produit:5432/produitdb
     username: postgres
     password: passer
     driver-class-name: org.postgresql.Driver
@@ -20,7 +20,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://service-discovery:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
 

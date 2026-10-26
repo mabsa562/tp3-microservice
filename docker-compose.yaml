@@ -1,56 +1,188 @@
 services:
 
-  discovery:
+  # =========================
+  # EUREKA DISCOVERY SERVER
+  # =========================
+  service-discovery:
     build: ./service-discovery
-    container_name: discovery
+    container_name: service-discovery
     ports:
       - "8761:8761"
     networks:
-      - microservices-network
+      - services-network
 
+
+  config-server:
+    build: ./config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    depends_on:
+      - service-discovery
+    networks:
+      - services-network
+
+  # =========================
+  # API GATEWAY
+  # =========================
   gateway:
     build: ./getway-service
     container_name: getway
     ports:
       - "8080:8080"
     depends_on:
-      - discovery
+      - service-discovery
     networks:
-      - microservices-network
+      - services-network
 
-  client:
-    build: ./client-service
-    container_name: client
+
+  # =========================
+  # POSTGRES CLIENT
+  # =========================
+  postgres-client:
+    image: postgres:16
+    container_name: postgres-client
+    environment:
+      POSTGRES_DB: clientdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: passer
     ports:
-      - "8081:8081"
-    depends_on:
-      - discovery
+      - "5433:5432"
+    volumes:
+      - postgres-client-data:/var/lib/postgresql/data
     networks:
-      - microservices-network
+      - services-network
 
-  produit:
+
+  # =========================
+  # CLIENT SERVICE
+  # =========================
+
+  client-service:
+    build: ./client-service
+    expose:
+      - "8081"
+    depends_on:
+      - service-discovery
+      - postgres-client
+    networks:
+      - services-network
+
+
+  # =========================
+  # POSTGRES PRODUIT
+  # =========================
+  postgres-produit:
+    image: postgres:16
+    container_name: postgres-produit
+    environment:
+      POSTGRES_DB: produitdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: passer
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres-produit-data:/var/lib/postgresql/data
+    networks:
+      - services-network
+
+
+  # =========================
+  # PRODUIT SERVICE
+  # =========================
+  produit-service:
     build: ./produit-service
     container_name: produit
     ports:
       - "8083:8083"
     depends_on:
-      - discovery
+      - service-discovery
+      - postgres-produit
     networks:
-      - microservices-network
+      - services-network
 
-  commande:
+
+  # =========================
+  # POSTGRES COMMANDE
+  # =========================
+  postgres-commande:
+    image: postgres:16
+    container_name: postgres-commande
+    environment:
+      POSTGRES_DB: commandedb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: passer
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres-commande-data:/var/lib/postgresql/data
+    networks:
+      - services-network
+
+
+  # =========================
+  # COMMANDE SERVICE
+  # =========================
+  commande-service:
     build: ./commande-service
     container_name: commande
     ports:
       - "8082:8082"
     depends_on:
-      - discovery
-      - client
-      - produit
+      - service-discovery
+      - client-service
+      - produit-service
+      - postgres-commande
     networks:
-      - microservices-network
+      - services-network
 
+
+  # =========================
+  # POSTGRES AUTH
+  # =========================
+  postgres-auth:
+    image: postgres:16
+    container_name: postgres-auth
+    environment:
+      POSTGRES_DB: authdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: passer
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres-auth-data:/var/lib/postgresql/data
+    networks:
+      - services-network
+
+  # =========================
+  # AUTH SERVICE
+  # =========================
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      - service-discovery
+      - config-server
+      - postgres-auth
+    networks:
+      - services-network
+
+
+# =========================
+# VOLUMES
+# =========================
+volumes:
+  postgres-client-data:
+  postgres-produit-data:
+  postgres-commande-data:
+  postgres-auth-data:
+
+
+# =========================
+# NETWORK
+# =========================
 networks:
-  microservices-network:
+  services-network:
     driver: bridge
-

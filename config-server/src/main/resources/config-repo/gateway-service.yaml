@@ -1,0 +1,52 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway-service
+
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+
+            - id: client-service
+              uri: lb://client-service
+              predicates:
+                - Path=/clients/**
+
+            - id: produit-service
+              uri: lb://produit-service
+              predicates:
+                - Path=/produits/**
+
+            - id: commande-service
+              uri: lb://commande-service
+              predicates:
+                - Path=/commandes/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://service-discovery:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
+management:
+  endpoints:
+    access:
+      default: read-only
+    web:
+      exposure:
+        include: "health,info,gateway"
+  endpoint:
+    health:
+      access: read-only
+      show-details: always
+    info:
+      access: read-only
+    gateway:
+      access: read-only
+jwt:
+  secret: "ISI-Master2-2026-TP-Microservices-JWT-Shared-Secret-Change-Me"
